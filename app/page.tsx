@@ -156,7 +156,7 @@ export default function Home() {
   return (
     <main className="app-page">
       <div className="w-full max-w-2xl">
-        <section className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <section className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="app-card p-4">
             <p className="text-sm text-slate-600">Total polls</p>
             <p className="mt-1 text-2xl font-semibold text-slate-900">
