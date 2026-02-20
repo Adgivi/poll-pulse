@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 const MIN_OPTIONS = 2;
 const MAX_OPTIONS = 5;
@@ -19,12 +19,49 @@ type ApiErrorResponse = {
   };
 };
 
+type AppMetrics = {
+  totalPolls: number;
+  totalVotes: number;
+  pollsLast24h: number;
+  votesLast24h: number;
+};
+
 export default function Home() {
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdPoll, setCreatedPoll] = useState<CreatePollResponse | null>(null);
+  const [metrics, setMetrics] = useState<AppMetrics | null>(null);
+  const [metricsError, setMetricsError] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState<"vote" | "results" | null>(null);
+  const [origin, setOrigin] = useState<string>("");
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  async function loadMetrics() {
+    try {
+      const response = await fetch("/api/metrics", { cache: "no-store" });
+      const payload = ((await response.json()) as AppMetrics | ApiErrorResponse) ?? null;
+
+      if (!response.ok) {
+        throw new Error((payload as ApiErrorResponse).error?.message ?? "Could not load metrics.");
+      }
+
+      setMetrics(payload as AppMetrics);
+      setMetricsError(null);
+    } catch (loadError) {
+      setMetricsError(
+        loadError instanceof Error ? loadError.message : "Could not load metrics.",
+      );
+    }
+  }
+
+  useEffect(() => {
+    void loadMetrics();
+  }, []);
 
   const isFormValid = useMemo(() => {
     const trimmedQuestion = question.trim();
@@ -86,6 +123,8 @@ export default function Home() {
       setCreatedPoll(payload as CreatePollResponse);
       setQuestion("");
       setOptions(["", ""]);
+      setCopiedLink(null);
+      void loadMetrics();
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -97,9 +136,59 @@ export default function Home() {
     }
   }
 
+  async function copyLink(type: "vote" | "results") {
+    if (!createdPoll) {
+      return;
+    }
+
+    const relative = type === "vote" ? createdPoll.voteUrl : createdPoll.resultsUrl;
+    const absolute = `${origin}${relative}`;
+
+    try {
+      await navigator.clipboard.writeText(absolute);
+      setCopiedLink(type);
+      setTimeout(() => setCopiedLink((current) => (current === type ? null : current)), 1200);
+    } catch {
+      setError("Could not copy link to clipboard.");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-slate-50 py-12">
       <div className="mx-auto w-full max-w-2xl px-6">
+        <section className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-600">Total polls</p>
+            <p className="mt-1 text-2xl font-semibold text-slate-900">
+              {metrics ? metrics.totalPolls : "—"}
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-600">Total votes</p>
+            <p className="mt-1 text-2xl font-semibold text-slate-900">
+              {metrics ? metrics.totalVotes : "—"}
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-600">Polls (24h)</p>
+            <p className="mt-1 text-xl font-semibold text-slate-900">
+              {metrics ? metrics.pollsLast24h : "—"}
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-600">Votes (24h)</p>
+            <p className="mt-1 text-xl font-semibold text-slate-900">
+              {metrics ? metrics.votesLast24h : "—"}
+            </p>
+          </div>
+        </section>
+
+        {metricsError ? (
+          <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            {metricsError}
+          </p>
+        ) : null}
+
         <section className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
           <h1 className="text-3xl font-semibold text-slate-900">Poll Pulse</h1>
           <p className="mt-2 text-slate-600">
@@ -129,7 +218,7 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-slate-700">Answer options</p>
                 <button
-                  className="text-sm font-medium text-indigo-600 disabled:cursor-not-allowed disabled:text-slate-400"
+                  className="cursor-pointer text-sm font-medium text-indigo-600 disabled:cursor-not-allowed disabled:text-slate-400"
                   disabled={options.length >= MAX_OPTIONS}
                   onClick={addOption}
                   type="button"
@@ -150,7 +239,7 @@ export default function Home() {
                   />
                   <button
                     aria-label={`Remove option ${index + 1}`}
-                    className="rounded-lg border border-slate-300 px-3 text-sm text-slate-700 disabled:cursor-not-allowed disabled:text-slate-400"
+                    className="cursor-pointer rounded-lg border border-slate-300 px-3 text-sm text-slate-700 disabled:cursor-not-allowed disabled:text-slate-400"
                     disabled={options.length <= MIN_OPTIONS}
                     onClick={() => removeOption(index)}
                     type="button"
@@ -168,7 +257,7 @@ export default function Home() {
             ) : null}
 
             <button
-              className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-300"
+              className="cursor-pointer w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-300"
               disabled={!isFormValid || isSubmitting}
               type="submit"
             >
@@ -185,21 +274,39 @@ export default function Home() {
             </p>
 
             <div className="mt-4 space-y-2 text-sm">
-              <p className="text-slate-800">
-                Vote:{" "}
-                <Link className="font-medium text-indigo-700 underline" href={createdPoll.voteUrl}>
-                  {createdPoll.voteUrl}
-                </Link>
-              </p>
-              <p className="text-slate-800">
-                Results:{" "}
-                <Link
-                  className="font-medium text-indigo-700 underline"
-                  href={createdPoll.resultsUrl}
+              <div className="flex items-center justify-between gap-4 rounded-lg border border-emerald-200 bg-white px-3 py-2">
+                <p className="text-slate-800">
+                  Vote:{" "}
+                  <Link className="font-medium text-indigo-700 underline" href={createdPoll.voteUrl}>
+                    {createdPoll.voteUrl}
+                  </Link>
+                </p>
+                <button
+                  className="cursor-pointer rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700"
+                  onClick={() => copyLink("vote")}
+                  type="button"
                 >
-                  {createdPoll.resultsUrl}
-                </Link>
-              </p>
+                  {copiedLink === "vote" ? "Copied" : "Copy link"}
+                </button>
+              </div>
+              <div className="flex items-center justify-between gap-4 rounded-lg border border-emerald-200 bg-white px-3 py-2">
+                <p className="text-slate-800">
+                  Results:{" "}
+                  <Link
+                    className="font-medium text-indigo-700 underline"
+                    href={createdPoll.resultsUrl}
+                  >
+                    {createdPoll.resultsUrl}
+                  </Link>
+                </p>
+                <button
+                  className="cursor-pointer rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700"
+                  onClick={() => copyLink("results")}
+                  type="button"
+                >
+                  {copiedLink === "results" ? "Copied" : "Copy link"}
+                </button>
+              </div>
             </div>
           </section>
         ) : null}
