@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DM_Sans, Space_Grotesk } from "next/font/google";
+import { DM_Sans, Space_Grotesk, Syne } from "next/font/google";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -10,6 +10,11 @@ const dmSans = DM_Sans({
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
+  subsets: ["latin"],
+});
+
+const syne = Syne({
+  variable: "--font-syne",
   subsets: ["latin"],
 });
 
@@ -25,7 +30,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} ${spaceGrotesk.variable} antialiased`}>
+      <body
+        className={`${dmSans.variable} ${spaceGrotesk.variable} ${syne.variable} antialiased`}
+      >
         <div className="app-root">
           <header className="app-header">
             <div className="app-header-inner">
