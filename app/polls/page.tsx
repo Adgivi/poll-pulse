@@ -1,15 +1,11 @@
-import Link from "next/link";
+import { PollsList } from "@/components/polls/PollsList";
+import { PollsListHeader } from "@/components/polls/PollsListHeader";
+import { PollListItem } from "@/components/polls/types";
+import { PageShell } from "@/components/ui/PageShell";
 import { prisma } from "@/lib/prisma";
 
-function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
-
 export default async function PollsPage() {
-  const polls = await prisma.poll.findMany({
+  const polls: PollListItem[] = await prisma.poll.findMany({
     orderBy: {
       createdAt: "desc",
     },
@@ -28,55 +24,9 @@ export default async function PollsPage() {
   });
 
   return (
-    <main className="app-page">
-      <div className="w-full max-w-2xl">
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-semibold text-slate-900">All polls</h1>
-            <p className="mt-1 text-slate-600">
-              Browse existing polls and open vote/result pages.
-            </p>
-          </div>
-          <Link className="text-sm font-medium text-indigo-700 underline" href="/">
-            Back to create
-          </Link>
-        </div>
-
-        {polls.length === 0 ? (
-          <div className="app-card p-6">
-            <p className="text-slate-700">No polls yet. Create your first one.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {polls.map((poll) => (
-              <article className="app-card p-5" key={poll.id}>
-                <h2 className="text-lg font-semibold text-slate-900">{poll.question}</h2>
-                <p className="mt-1 text-sm text-slate-600">
-                  Created: {formatDate(poll.createdAt)}
-                </p>
-                <p className="mt-1 text-sm text-slate-600">
-                  {poll._count.options} options · {poll._count.votes} votes
-                </p>
-
-                <div className="mt-3 flex flex-wrap gap-4 text-sm">
-                  <Link
-                    className="font-medium text-indigo-700 underline"
-                    href={`/polls/${poll.slug}`}
-                  >
-                    Open voting
-                  </Link>
-                  <Link
-                    className="font-medium text-indigo-700 underline"
-                    href={`/polls/${poll.slug}/result`}
-                  >
-                    Open result
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </div>
-    </main>
+    <PageShell>
+      <PollsListHeader />
+      <PollsList polls={polls} />
+    </PageShell>
   );
 }
