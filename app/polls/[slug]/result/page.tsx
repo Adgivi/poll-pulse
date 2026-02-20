@@ -226,7 +226,7 @@ export default function PollResultsPage() {
         )}
 
         <div className="mt-6 text-sm">
-          <Link className="text-indigo-700 underline" href={`/p/${slug}`}>
+          <Link className="text-indigo-700 underline" href={`/polls/${slug}`}>
             Back to voting
           </Link>
         </div>

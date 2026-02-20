@@ -34,7 +34,7 @@ export default async function PollsPage() {
           <div>
             <h1 className="text-3xl font-semibold text-slate-900">All polls</h1>
             <p className="mt-1 text-slate-600">
-              Browse existing polls and open vote/results pages.
+              Browse existing polls and open vote/result pages.
             </p>
           </div>
           <Link className="text-sm font-medium text-indigo-700 underline" href="/">
@@ -59,14 +59,17 @@ export default async function PollsPage() {
                 </p>
 
                 <div className="mt-3 flex flex-wrap gap-4 text-sm">
-                  <Link className="font-medium text-indigo-700 underline" href={`/p/${poll.slug}`}>
+                  <Link
+                    className="font-medium text-indigo-700 underline"
+                    href={`/polls/${poll.slug}`}
+                  >
                     Open voting
                   </Link>
                   <Link
                     className="font-medium text-indigo-700 underline"
-                    href={`/p/${poll.slug}/results`}
+                    href={`/polls/${poll.slug}/result`}
                   >
-                    Open results
+                    Open result
                   </Link>
                 </div>
               </article>
