@@ -6,6 +6,7 @@
   --surface: #ffffff;
   --surface-border: #d6dfeb;
   --content-max-width: 42rem;
+  --content-gutter: 1.5rem;
 }
 
 @theme inline {
@@ -57,8 +58,8 @@ body {
 .app-header-inner {
   margin: 0 auto;
   width: 100%;
-  max-width: var(--content-max-width);
-  padding: 1rem 1.5rem;
+  max-width: calc(var(--content-max-width) + (var(--content-gutter) * 2));
+  padding: 1rem var(--content-gutter);
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -66,9 +67,9 @@ body {
 }
 
 .app-brand {
-  font-family: var(--font-syne), sans-serif;
-  font-size: 2.05rem;
-  letter-spacing: -0.03em;
+  font-family: var(--font-bricolage-grotesque), sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: -0.02em;
   line-height: 1;
   font-weight: 800;
   color: #0b1324;
@@ -94,7 +95,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
+  padding: var(--content-gutter);
 }
 
 .app-card {
