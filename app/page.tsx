@@ -157,12 +157,16 @@ export default function Home() {
     <main className="app-page">
       <div className="w-full max-w-2xl">
         <section className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="app-card p-4">
+          <Link
+            className="app-card p-4 transition hover:border-indigo-300 hover:shadow md:focus-visible:outline md:focus-visible:outline-2 md:focus-visible:outline-indigo-500"
+            href="/polls"
+          >
             <p className="text-sm text-slate-600">Total polls</p>
             <p className="mt-1 text-2xl font-semibold text-slate-900">
               {metrics ? metrics.totalPolls : "—"}
             </p>
-          </div>
+            <p className="mt-2 text-xs font-medium text-indigo-700">View all polls</p>
+          </Link>
           <div className="app-card p-4">
             <p className="text-sm text-slate-600">Total votes</p>
             <p className="mt-1 text-2xl font-semibold text-slate-900">
