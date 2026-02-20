@@ -154,28 +154,28 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 py-12">
-      <div className="mx-auto w-full max-w-2xl px-6">
-        <section className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <main className="app-page">
+      <div className="w-full max-w-2xl">
+        <section className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="app-card p-4">
             <p className="text-sm text-slate-600">Total polls</p>
             <p className="mt-1 text-2xl font-semibold text-slate-900">
               {metrics ? metrics.totalPolls : "—"}
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="app-card p-4">
             <p className="text-sm text-slate-600">Total votes</p>
             <p className="mt-1 text-2xl font-semibold text-slate-900">
               {metrics ? metrics.totalVotes : "—"}
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="app-card p-4">
             <p className="text-sm text-slate-600">Polls (24h)</p>
             <p className="mt-1 text-xl font-semibold text-slate-900">
               {metrics ? metrics.pollsLast24h : "—"}
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="app-card p-4">
             <p className="text-sm text-slate-600">Votes (24h)</p>
             <p className="mt-1 text-xl font-semibold text-slate-900">
               {metrics ? metrics.votesLast24h : "—"}
@@ -189,9 +189,11 @@ export default function Home() {
           </p>
         ) : null}
 
-        <section className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h1 className="text-3xl font-semibold text-slate-900">Poll Pulse</h1>
-          <p className="mt-2 text-slate-600">
+        <section className="app-card p-8">
+          <h1 className="display-font text-3xl font-semibold text-slate-900">
+            Create a poll
+          </h1>
+          <p className="mt-2 text-slate-700">
             Create a poll with 2 to 5 options and share the voting link.
           </p>
 
@@ -267,7 +269,7 @@ export default function Home() {
         </section>
 
         {createdPoll ? (
-          <section className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-6">
+          <section className="app-card mt-6 border-emerald-200 bg-emerald-50 p-6">
             <h2 className="text-lg font-semibold text-emerald-900">Poll created</h2>
             <p className="mt-1 text-sm text-emerald-800">
               Share these links with participants.
