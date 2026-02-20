@@ -218,7 +218,7 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-slate-700">Answer options</p>
                 <button
-                  className="text-sm font-medium text-indigo-600 disabled:cursor-not-allowed disabled:text-slate-400"
+                  className="cursor-pointer text-sm font-medium text-indigo-600 disabled:cursor-not-allowed disabled:text-slate-400"
                   disabled={options.length >= MAX_OPTIONS}
                   onClick={addOption}
                   type="button"
@@ -239,7 +239,7 @@ export default function Home() {
                   />
                   <button
                     aria-label={`Remove option ${index + 1}`}
-                    className="rounded-lg border border-slate-300 px-3 text-sm text-slate-700 disabled:cursor-not-allowed disabled:text-slate-400"
+                    className="cursor-pointer rounded-lg border border-slate-300 px-3 text-sm text-slate-700 disabled:cursor-not-allowed disabled:text-slate-400"
                     disabled={options.length <= MIN_OPTIONS}
                     onClick={() => removeOption(index)}
                     type="button"
@@ -257,7 +257,7 @@ export default function Home() {
             ) : null}
 
             <button
-              className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-300"
+              className="cursor-pointer w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-300"
               disabled={!isFormValid || isSubmitting}
               type="submit"
             >
@@ -282,7 +282,7 @@ export default function Home() {
                   </Link>
                 </p>
                 <button
-                  className="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700"
+                  className="cursor-pointer rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700"
                   onClick={() => copyLink("vote")}
                   type="button"
                 >
@@ -300,7 +300,7 @@ export default function Home() {
                   </Link>
                 </p>
                 <button
-                  className="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700"
+                  className="cursor-pointer rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700"
                   onClick={() => copyLink("results")}
                   type="button"
                 >
