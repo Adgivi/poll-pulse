@@ -31,8 +31,8 @@ export async function POST(request: Request) {
       {
         id: poll.id,
         slug: poll.slug,
-        voteUrl: `/p/${poll.slug}`,
-        resultsUrl: `/p/${poll.slug}/results`,
+        voteUrl: `/polls/${poll.slug}`,
+        resultsUrl: `/polls/${poll.slug}/result`,
       },
       { status: 201 },
     );

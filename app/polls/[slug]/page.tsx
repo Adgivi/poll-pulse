@@ -149,8 +149,11 @@ export default function PollVotePage() {
         {poll.hasVoted ? (
           <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
             <p className="text-amber-900">You already voted in this poll.</p>
-            <Link className="mt-2 inline-block text-indigo-700 underline" href={`/p/${slug}/results`}>
-              See results
+            <Link
+              className="mt-2 inline-block text-indigo-700 underline"
+              href={`/polls/${slug}/result`}
+            >
+              See result
             </Link>
           </div>
         ) : (
@@ -194,8 +197,11 @@ export default function PollVotePage() {
             <p className="mt-1 text-sm text-emerald-800">
               Total votes: <span className="font-semibold">{resultsAfterVote.totalVotes}</span>
             </p>
-            <Link className="mt-2 inline-block text-indigo-700 underline" href={`/p/${slug}/results`}>
-              See live results
+            <Link
+              className="mt-2 inline-block text-indigo-700 underline"
+              href={`/polls/${slug}/result`}
+            >
+              See live result
             </Link>
           </div>
         ) : null}
