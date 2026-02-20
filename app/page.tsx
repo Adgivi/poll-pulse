@@ -1,30 +1,15 @@
 "use client";
 
-import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { CreatedPollLinksCard } from "@/components/polls/CreatedPollLinksCard";
+import { MetricsCards } from "@/components/polls/MetricsCards";
+import { PollBuilderForm } from "@/components/polls/PollBuilderForm";
+import { ApiErrorResponse, AppMetrics, CopiedLinkKind, CreatePollResponse } from "@/components/polls/types";
+import { InlineAlert } from "@/components/ui/InlineAlert";
+import { PageShell } from "@/components/ui/PageShell";
 
 const MIN_OPTIONS = 2;
 const MAX_OPTIONS = 5;
-
-type CreatePollResponse = {
-  id: string;
-  slug: string;
-  voteUrl: string;
-  resultsUrl: string;
-};
-
-type ApiErrorResponse = {
-  error?: {
-    message?: string;
-  };
-};
-
-type AppMetrics = {
-  totalPolls: number;
-  totalVotes: number;
-  pollsLast24h: number;
-  votesLast24h: number;
-};
 
 export default function Home() {
   const [question, setQuestion] = useState("");
@@ -34,14 +19,10 @@ export default function Home() {
   const [createdPoll, setCreatedPoll] = useState<CreatePollResponse | null>(null);
   const [metrics, setMetrics] = useState<AppMetrics | null>(null);
   const [metricsError, setMetricsError] = useState<string | null>(null);
-  const [copiedLink, setCopiedLink] = useState<"vote" | "results" | null>(null);
+  const [copiedLink, setCopiedLink] = useState<CopiedLinkKind | null>(null);
   const [origin, setOrigin] = useState<string>("");
 
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
-
-  async function loadMetrics() {
+  const loadMetrics = useCallback(async () => {
     try {
       const response = await fetch("/api/metrics", { cache: "no-store" });
       const payload = ((await response.json()) as AppMetrics | ApiErrorResponse) ?? null;
@@ -57,11 +38,12 @@ export default function Home() {
         loadError instanceof Error ? loadError.message : "Could not load metrics.",
       );
     }
-  }
+  }, []);
 
   useEffect(() => {
+    setOrigin(window.location.origin);
     void loadMetrics();
-  }, []);
+  }, [loadMetrics]);
 
   const isFormValid = useMemo(() => {
     const trimmedQuestion = question.trim();
@@ -136,7 +118,7 @@ export default function Home() {
     }
   }
 
-  async function copyLink(type: "vote" | "results") {
+  async function copyLink(type: CopiedLinkKind) {
     if (!createdPoll) {
       return;
     }
@@ -154,169 +136,33 @@ export default function Home() {
   }
 
   return (
-    <main className="app-page">
-      <div className="w-full max-w-2xl">
-        <section className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Link
-            className="app-card p-4 transition hover:border-indigo-300 hover:shadow md:focus-visible:outline md:focus-visible:outline-2 md:focus-visible:outline-indigo-500"
-            href="/polls"
-          >
-            <p className="text-sm text-slate-600">Total polls</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-900">
-              {metrics ? metrics.totalPolls : "—"}
-            </p>
-            <p className="mt-2 text-xs font-medium text-indigo-700">View all polls</p>
-          </Link>
-          <div className="app-card p-4">
-            <p className="text-sm text-slate-600">Total votes</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-900">
-              {metrics ? metrics.totalVotes : "—"}
-            </p>
-          </div>
-          <div className="app-card p-4">
-            <p className="text-sm text-slate-600">Polls (24h)</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">
-              {metrics ? metrics.pollsLast24h : "—"}
-            </p>
-          </div>
-          <div className="app-card p-4">
-            <p className="text-sm text-slate-600">Votes (24h)</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">
-              {metrics ? metrics.votesLast24h : "—"}
-            </p>
-          </div>
-        </section>
+    <PageShell>
+      <MetricsCards metrics={metrics} />
 
-        {metricsError ? (
-          <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-            {metricsError}
-          </p>
-        ) : null}
+      {metricsError ? (
+        <InlineAlert className="mb-4" tone="warning">
+          {metricsError}
+        </InlineAlert>
+      ) : null}
 
-        <section className="app-card p-8">
-          <h1 className="display-font text-3xl font-semibold text-slate-900">
-            Create a poll
-          </h1>
-          <p className="mt-2 text-slate-700">
-            Create a poll with 2 to 5 options and share the voting link.
-          </p>
+      <PollBuilderForm
+        error={error}
+        isFormValid={isFormValid}
+        isSubmitting={isSubmitting}
+        maxOptions={MAX_OPTIONS}
+        minOptions={MIN_OPTIONS}
+        onAddOption={addOption}
+        onOptionChange={updateOption}
+        onQuestionChange={setQuestion}
+        onRemoveOption={removeOption}
+        onSubmit={onSubmit}
+        options={options}
+        question={question}
+      />
 
-          <form className="mt-8 space-y-6" onSubmit={onSubmit}>
-            <div>
-              <label
-                className="mb-2 block text-sm font-medium text-slate-700"
-                htmlFor="question"
-              >
-                Question
-              </label>
-              <input
-                id="question"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none ring-indigo-200 transition focus:ring-2"
-                maxLength={180}
-                onChange={(event) => setQuestion(event.target.value)}
-                placeholder="What should we build next?"
-                required
-                value={question}
-              />
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-700">Answer options</p>
-                <button
-                  className="cursor-pointer text-sm font-medium text-indigo-600 disabled:cursor-not-allowed disabled:text-slate-400"
-                  disabled={options.length >= MAX_OPTIONS}
-                  onClick={addOption}
-                  type="button"
-                >
-                  + Add option
-                </button>
-              </div>
-
-              {options.map((option, index) => (
-                <div className="flex gap-2" key={`option-${index}`}>
-                  <input
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none ring-indigo-200 transition focus:ring-2"
-                    maxLength={80}
-                    onChange={(event) => updateOption(index, event.target.value)}
-                    placeholder={`Option ${index + 1}`}
-                    required
-                    value={option}
-                  />
-                  <button
-                    aria-label={`Remove option ${index + 1}`}
-                    className="cursor-pointer rounded-lg border border-slate-300 px-3 text-sm text-slate-700 disabled:cursor-not-allowed disabled:text-slate-400"
-                    disabled={options.length <= MIN_OPTIONS}
-                    onClick={() => removeOption(index)}
-                    type="button"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {error ? (
-              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {error}
-              </p>
-            ) : null}
-
-            <button
-              className="cursor-pointer w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-300"
-              disabled={!isFormValid || isSubmitting}
-              type="submit"
-            >
-              {isSubmitting ? "Creating..." : "Create poll"}
-            </button>
-          </form>
-        </section>
-
-        {createdPoll ? (
-          <section className="app-card mt-6 border-emerald-200 bg-emerald-50 p-6">
-            <h2 className="text-lg font-semibold text-emerald-900">Poll created</h2>
-            <p className="mt-1 text-sm text-emerald-800">
-              Share these links with participants.
-            </p>
-
-            <div className="mt-4 space-y-2 text-sm">
-              <div className="flex items-center justify-between gap-4 rounded-lg border border-emerald-200 bg-white px-3 py-2">
-                <p className="text-slate-800">
-                  Vote:{" "}
-                  <Link className="font-medium text-indigo-700 underline" href={createdPoll.voteUrl}>
-                    {createdPoll.voteUrl}
-                  </Link>
-                </p>
-                <button
-                  className="cursor-pointer rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700"
-                  onClick={() => copyLink("vote")}
-                  type="button"
-                >
-                  {copiedLink === "vote" ? "Copied" : "Copy link"}
-                </button>
-              </div>
-              <div className="flex items-center justify-between gap-4 rounded-lg border border-emerald-200 bg-white px-3 py-2">
-                <p className="text-slate-800">
-                  Results:{" "}
-                  <Link
-                    className="font-medium text-indigo-700 underline"
-                    href={createdPoll.resultsUrl}
-                  >
-                    {createdPoll.resultsUrl}
-                  </Link>
-                </p>
-                <button
-                  className="cursor-pointer rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700"
-                  onClick={() => copyLink("results")}
-                  type="button"
-                >
-                  {copiedLink === "results" ? "Copied" : "Copy link"}
-                </button>
-              </div>
-            </div>
-          </section>
-        ) : null}
-      </div>
-    </main>
+      {createdPoll ? (
+        <CreatedPollLinksCard copiedLink={copiedLink} onCopy={copyLink} poll={createdPoll} />
+      ) : null}
+    </PageShell>
   );
 }
