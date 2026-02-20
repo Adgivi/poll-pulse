@@ -112,8 +112,8 @@ export default function PollVotePage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-slate-50 py-12">
-        <div className="mx-auto w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+      <main className="app-page">
+        <div className="app-card w-full max-w-2xl p-8">
           <p className="text-slate-600">Loading poll...</p>
         </div>
       </main>
@@ -122,8 +122,8 @@ export default function PollVotePage() {
 
   if (error && !poll) {
     return (
-      <main className="min-h-screen bg-slate-50 py-12">
-        <div className="mx-auto w-full max-w-2xl rounded-xl border border-red-200 bg-red-50 p-8 shadow-sm">
+      <main className="app-page">
+        <div className="app-card w-full max-w-2xl border-red-200 bg-red-50 p-8">
           <h1 className="text-xl font-semibold text-red-900">Could not load poll</h1>
           <p className="mt-2 text-red-700">{error}</p>
           <Link className="mt-4 inline-block text-indigo-700 underline" href="/">
@@ -139,9 +139,11 @@ export default function PollVotePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 py-12">
-      <div className="mx-auto w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-semibold text-slate-900">{poll.question}</h1>
+    <main className="app-page">
+      <div className="app-card w-full max-w-2xl p-8">
+        <h1 className="display-font text-2xl font-semibold text-slate-900">
+          {poll.question}
+        </h1>
         <p className="mt-2 text-sm text-slate-600">Pick one option and submit your vote.</p>
 
         {poll.hasVoted ? (

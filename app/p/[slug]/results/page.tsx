@@ -152,8 +152,8 @@ export default function PollResultsPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-slate-50 py-12">
-        <div className="mx-auto w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+      <main className="app-page">
+        <div className="app-card w-full max-w-2xl p-8">
           <p className="text-slate-600">Loading results...</p>
         </div>
       </main>
@@ -162,8 +162,8 @@ export default function PollResultsPage() {
 
   if (error || !results) {
     return (
-      <main className="min-h-screen bg-slate-50 py-12">
-        <div className="mx-auto w-full max-w-2xl rounded-xl border border-red-200 bg-red-50 p-8 shadow-sm">
+      <main className="app-page">
+        <div className="app-card w-full max-w-2xl border-red-200 bg-red-50 p-8">
           <h1 className="text-xl font-semibold text-red-900">Could not load results</h1>
           <p className="mt-2 text-red-700">{error ?? "Poll not found."}</p>
           <Link className="mt-4 inline-block text-indigo-700 underline" href="/">
@@ -180,9 +180,11 @@ export default function PollResultsPage() {
   );
 
   return (
-    <main className="min-h-screen bg-slate-50 py-12">
-      <div className="mx-auto w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-semibold text-slate-900">{results.question}</h1>
+    <main className="app-page">
+      <div className="app-card w-full max-w-2xl p-8">
+        <h1 className="display-font text-2xl font-semibold text-slate-900">
+          {results.question}
+        </h1>
         <p className="mt-2 text-sm text-slate-600">
           Live results with adaptive polling. Total votes:{" "}
           <span className="font-semibold">{results.totalVotes}</span>

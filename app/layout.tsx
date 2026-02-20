@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
+import { DM_Sans, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
 });
 
@@ -24,10 +25,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${dmSans.variable} ${spaceGrotesk.variable} antialiased`}>
+        <div className="app-root">
+          <header className="app-header">
+            <div className="app-header-inner">
+              <Link className="app-brand" href="/">
+                Poll Pulse
+              </Link>
+              <p className="app-tagline">Live Polling Demo</p>
+            </div>
+          </header>
+          <div className="app-body">{children}</div>
+        </div>
       </body>
     </html>
   );
