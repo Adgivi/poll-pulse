@@ -28,8 +28,8 @@ export default async function PollsPage() {
   });
 
   return (
-    <main className="min-h-screen bg-slate-50 py-12">
-      <div className="mx-auto w-full max-w-3xl px-6">
+    <main className="app-page">
+      <div className="w-full max-w-2xl">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-semibold text-slate-900">All polls</h1>
@@ -43,16 +43,13 @@ export default async function PollsPage() {
         </div>
 
         {polls.length === 0 ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="app-card p-6">
             <p className="text-slate-700">No polls yet. Create your first one.</p>
           </div>
         ) : (
           <div className="space-y-4">
             {polls.map((poll) => (
-              <article
-                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-                key={poll.id}
-              >
+              <article className="app-card p-5" key={poll.id}>
                 <h2 className="text-lg font-semibold text-slate-900">{poll.question}</h2>
                 <p className="mt-1 text-sm text-slate-600">
                   Created: {formatDate(poll.createdAt)}
