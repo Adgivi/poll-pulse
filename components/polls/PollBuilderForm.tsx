@@ -1,36 +1,57 @@
-import { FormEventHandler } from "react";
+import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { InlineAlert } from "@/components/ui/InlineAlert";
 
 type PollBuilderFormProps = {
-  question: string;
-  options: string[];
-  isSubmitting: boolean;
-  isFormValid: boolean;
-  error: string | null;
+  pending: boolean;
+  errorMessage: string | null;
   minOptions: number;
   maxOptions: number;
-  onQuestionChange: (value: string) => void;
-  onOptionChange: (index: number, value: string) => void;
-  onAddOption: () => void;
-  onRemoveOption: (index: number) => void;
-  onSubmit: FormEventHandler<HTMLFormElement>;
+  action: (payload: FormData) => void;
 };
 
 export function PollBuilderForm({
-  question,
-  options,
-  isSubmitting,
-  isFormValid,
-  error,
+  pending,
+  errorMessage,
   minOptions,
   maxOptions,
-  onQuestionChange,
-  onOptionChange,
-  onAddOption,
-  onRemoveOption,
-  onSubmit,
+  action,
 }: PollBuilderFormProps) {
+  const [question, setQuestion] = useState("");
+  const [options, setOptions] = useState(["", ""]);
+
+  const isFormValid = useMemo(() => {
+    const trimmedQuestion = question.trim();
+    const cleanedOptions = options.map((option) => option.trim()).filter(Boolean);
+    const uniqueOptions = new Set(cleanedOptions.map((option) => option.toLowerCase()));
+
+    return (
+      trimmedQuestion.length > 0 &&
+      cleanedOptions.length >= minOptions &&
+      cleanedOptions.length <= maxOptions &&
+      uniqueOptions.size === cleanedOptions.length
+    );
+  }, [maxOptions, minOptions, options, question]);
+
+  function updateOption(index: number, value: string) {
+    setOptions((current) => current.map((item, idx) => (idx === index ? value : item)));
+  }
+
+  function addOption() {
+    setOptions((current) =>
+      current.length >= maxOptions ? current : [...current, ""],
+    );
+  }
+
+  function removeOption(index: number) {
+    setOptions((current) => {
+      if (current.length <= minOptions) {
+        return current;
+      }
+      return current.filter((_, idx) => idx !== index);
+    });
+  }
+
   return (
     <Card className="p-8">
       <h1 className="display-font text-3xl font-semibold text-slate-900">Create a poll</h1>
@@ -38,16 +59,17 @@ export function PollBuilderForm({
         Create a poll with 2 to 5 options and share the voting link.
       </p>
 
-      <form className="mt-8 space-y-6" onSubmit={onSubmit}>
+      <form action={action} className="mt-8 space-y-6">
         <div>
           <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="question">
             Question
           </label>
           <input
             id="question"
+            name="question"
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none ring-indigo-200 transition focus:ring-2"
             maxLength={180}
-            onChange={(event) => onQuestionChange(event.target.value)}
+            onChange={(event) => setQuestion(event.target.value)}
             placeholder="What should we build next?"
             required
             value={question}
@@ -60,7 +82,7 @@ export function PollBuilderForm({
             <button
               className="cursor-pointer text-sm font-medium text-indigo-600 disabled:cursor-not-allowed disabled:text-slate-400"
               disabled={options.length >= maxOptions}
-              onClick={onAddOption}
+              onClick={addOption}
               type="button"
             >
               + Add option
@@ -70,9 +92,10 @@ export function PollBuilderForm({
           {options.map((option, index) => (
             <div className="flex gap-2" key={`option-${index}`}>
               <input
+                name="options"
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none ring-indigo-200 transition focus:ring-2"
                 maxLength={80}
-                onChange={(event) => onOptionChange(index, event.target.value)}
+                onChange={(event) => updateOption(index, event.target.value)}
                 placeholder={`Option ${index + 1}`}
                 required
                 value={option}
@@ -81,7 +104,7 @@ export function PollBuilderForm({
                 aria-label={`Remove option ${index + 1}`}
                 className="cursor-pointer rounded-lg border border-slate-300 px-3 text-sm text-slate-700 disabled:cursor-not-allowed disabled:text-slate-400"
                 disabled={options.length <= minOptions}
-                onClick={() => onRemoveOption(index)}
+                onClick={() => removeOption(index)}
                 type="button"
               >
                 Remove
@@ -90,14 +113,14 @@ export function PollBuilderForm({
           ))}
         </div>
 
-        {error ? <InlineAlert tone="error">{error}</InlineAlert> : null}
+        {errorMessage ? <InlineAlert tone="error">{errorMessage}</InlineAlert> : null}
 
         <button
           className="cursor-pointer w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-300"
-          disabled={!isFormValid || isSubmitting}
+          disabled={!isFormValid || pending}
           type="submit"
         >
-          {isSubmitting ? "Creating..." : "Create poll"}
+          {pending ? "Creating..." : "Create poll"}
         </button>
       </form>
     </Card>
