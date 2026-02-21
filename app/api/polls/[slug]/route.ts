@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPollForVoting } from "@/lib/vote-service";
 import { getVoterIdFromRequest } from "@/lib/voter";
 
 export const runtime = "nodejs";
@@ -12,21 +12,7 @@ export async function GET(request: Request, { params }: RouteProps) {
   const { slug } = await params;
   const voterId = getVoterIdFromRequest(request);
 
-  const poll = await prisma.poll.findUnique({
-    where: { slug },
-    select: {
-      id: true,
-      slug: true,
-      question: true,
-      options: {
-        orderBy: { sortOrder: "asc" },
-        select: {
-          id: true,
-          text: true,
-        },
-      },
-    },
-  });
+  const poll = await getPollForVoting(slug, voterId);
 
   if (!poll) {
     return NextResponse.json(
@@ -35,20 +21,5 @@ export async function GET(request: Request, { params }: RouteProps) {
     );
   }
 
-  const hasVoted = voterId
-    ? Boolean(
-        await prisma.vote.findUnique({
-          where: { pollId_voterId: { pollId: poll.id, voterId } },
-          select: { id: true },
-        }),
-      )
-    : false;
-
-  return NextResponse.json({
-    id: poll.id,
-    slug: poll.slug,
-    question: poll.question,
-    options: poll.options,
-    hasVoted,
-  });
+  return NextResponse.json(poll);
 }

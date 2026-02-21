@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Bricolage_Grotesque, DM_Sans, Space_Grotesk } from "next/font/google";
+import { Providers } from "@/app/providers";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -33,17 +34,19 @@ export default function RootLayout({
       <body
         className={`${dmSans.variable} ${spaceGrotesk.variable} ${bricolageGrotesque.variable} antialiased`}
       >
-        <div className="app-root">
-          <header className="app-header">
-            <div className="app-header-inner">
-              <Link className="app-brand" href="/">
-                Poll Pulse
-              </Link>
-              <p className="app-tagline">Live Polling Demo</p>
-            </div>
-          </header>
-          <div className="app-body">{children}</div>
-        </div>
+        <Providers>
+          <div className="app-root">
+            <header className="app-header">
+              <div className="app-header-inner">
+                <Link className="app-brand" href="/">
+                  Poll Pulse
+                </Link>
+                <p className="app-tagline">Live Polling Demo</p>
+              </div>
+            </header>
+            <div className="app-body">{children}</div>
+          </div>
+        </Providers>
       </body>
     </html>
   );
