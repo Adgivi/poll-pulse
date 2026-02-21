@@ -1,122 +1,57 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { createPollAction, CreatePollActionState } from "@/app/actions/create-poll";
 import { CreatedPollLinksCard } from "@/components/polls/CreatedPollLinksCard";
 import { MetricsCards } from "@/components/polls/MetricsCards";
 import { PollBuilderForm } from "@/components/polls/PollBuilderForm";
-import { ApiErrorResponse, AppMetrics, CopiedLinkKind, CreatePollResponse } from "@/components/polls/types";
+import { ApiErrorResponse, AppMetrics, CopiedLinkKind } from "@/components/polls/types";
 import { InlineAlert } from "@/components/ui/InlineAlert";
 import { PageShell } from "@/components/ui/PageShell";
 
 const MIN_OPTIONS = 2;
 const MAX_OPTIONS = 5;
+const METRICS_QUERY_KEY = ["app-metrics"] as const;
+const INITIAL_CREATE_POLL_STATE: CreatePollActionState = {
+  createdPoll: null,
+  errorMessage: null,
+};
+
+async function fetchAppMetrics(): Promise<AppMetrics> {
+  const response = await fetch("/api/metrics", { cache: "no-store" });
+  const payload = ((await response.json()) as AppMetrics | ApiErrorResponse) ?? null;
+
+  if (!response.ok) {
+    throw new Error((payload as ApiErrorResponse).error?.message ?? "Could not load metrics.");
+  }
+
+  return payload as AppMetrics;
+}
 
 export default function Home() {
-  const [question, setQuestion] = useState("");
-  const [options, setOptions] = useState(["", ""]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [createdPoll, setCreatedPoll] = useState<CreatePollResponse | null>(null);
-  const [metrics, setMetrics] = useState<AppMetrics | null>(null);
-  const [metricsError, setMetricsError] = useState<string | null>(null);
-  const [copiedLink, setCopiedLink] = useState<CopiedLinkKind | null>(null);
-  const [origin, setOrigin] = useState<string>("");
-
-  const loadMetrics = useCallback(async () => {
-    try {
-      const response = await fetch("/api/metrics", { cache: "no-store" });
-      const payload = ((await response.json()) as AppMetrics | ApiErrorResponse) ?? null;
-
-      if (!response.ok) {
-        throw new Error((payload as ApiErrorResponse).error?.message ?? "Could not load metrics.");
-      }
-
-      setMetrics(payload as AppMetrics);
-      setMetricsError(null);
-    } catch (loadError) {
-      setMetricsError(
-        loadError instanceof Error ? loadError.message : "Could not load metrics.",
-      );
-    }
-  }, []);
+  const [copiedLink, setCopiedLink] = useState<{
+    kind: CopiedLinkKind;
+    pollId: string;
+  } | null>(null);
+  const queryClient = useQueryClient();
+  const [createPollState, submitCreatePollAction, isCreating] = useActionState(
+    createPollAction,
+    INITIAL_CREATE_POLL_STATE,
+  );
+  const metricsQuery = useQuery({
+    queryKey: METRICS_QUERY_KEY,
+    queryFn: fetchAppMetrics,
+  });
+  const createdPoll = isCreating ? null : createPollState.createdPoll;
 
   useEffect(() => {
-    setOrigin(window.location.origin);
-    void loadMetrics();
-  }, [loadMetrics]);
-
-  const isFormValid = useMemo(() => {
-    const trimmedQuestion = question.trim();
-    const cleanedOptions = options.map((option) => option.trim()).filter(Boolean);
-    const uniqueOptions = new Set(cleanedOptions.map((option) => option.toLowerCase()));
-
-    return (
-      trimmedQuestion.length > 0 &&
-      cleanedOptions.length >= MIN_OPTIONS &&
-      cleanedOptions.length <= MAX_OPTIONS &&
-      uniqueOptions.size === cleanedOptions.length
-    );
-  }, [options, question]);
-
-  function updateOption(index: number, value: string) {
-    setOptions((current) => current.map((item, idx) => (idx === index ? value : item)));
-  }
-
-  function addOption() {
-    setOptions((current) =>
-      current.length >= MAX_OPTIONS ? current : [...current, ""],
-    );
-  }
-
-  function removeOption(index: number) {
-    setOptions((current) => {
-      if (current.length <= MIN_OPTIONS) {
-        return current;
-      }
-      return current.filter((_, idx) => idx !== index);
-    });
-  }
-
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError(null);
-    setCreatedPoll(null);
-
-    try {
-      setIsSubmitting(true);
-
-      const response = await fetch("/api/polls", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question,
-          options,
-        }),
-      });
-
-      const payload =
-        ((await response.json()) as CreatePollResponse | ApiErrorResponse) ?? null;
-
-      if (!response.ok) {
-        const errorPayload = payload as ApiErrorResponse;
-        throw new Error(errorPayload.error?.message ?? "Could not create poll.");
-      }
-
-      setCreatedPoll(payload as CreatePollResponse);
-      setQuestion("");
-      setOptions(["", ""]);
-      setCopiedLink(null);
-      void loadMetrics();
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Unexpected error while creating the poll.",
-      );
-    } finally {
-      setIsSubmitting(false);
+    if (!createPollState.createdPoll?.id) {
+      return;
     }
-  }
+
+    void queryClient.invalidateQueries({ queryKey: METRICS_QUERY_KEY });
+  }, [createPollState.createdPoll?.id, queryClient]);
 
   async function copyLink(type: CopiedLinkKind) {
     if (!createdPoll) {
@@ -124,20 +59,28 @@ export default function Home() {
     }
 
     const relative = type === "vote" ? createdPoll.voteUrl : createdPoll.resultsUrl;
-    const absolute = `${origin}${relative}`;
+    const absolute = `${window.location.origin}${relative}`;
 
     try {
       await navigator.clipboard.writeText(absolute);
-      setCopiedLink(type);
-      setTimeout(() => setCopiedLink((current) => (current === type ? null : current)), 1200);
-    } catch {
-      setError("Could not copy link to clipboard.");
-    }
+      setCopiedLink({ kind: type, pollId: createdPoll.id });
+      setTimeout(
+        () =>
+          setCopiedLink((current) =>
+            current?.kind === type && current.pollId === createdPoll.id ? null : current,
+          ),
+        1200,
+      );
+    } catch {}
   }
+
+  const metricsError = metricsQuery.error instanceof Error ? metricsQuery.error.message : null;
+  const visibleCopiedLink =
+    createdPoll && copiedLink?.pollId === createdPoll.id ? copiedLink.kind : null;
 
   return (
     <PageShell>
-      <MetricsCards metrics={metrics} />
+      <MetricsCards metrics={metricsQuery.data ?? null} />
 
       {metricsError ? (
         <InlineAlert className="mb-4" tone="warning">
@@ -146,22 +89,16 @@ export default function Home() {
       ) : null}
 
       <PollBuilderForm
-        error={error}
-        isFormValid={isFormValid}
-        isSubmitting={isSubmitting}
+        key={createdPoll?.id ?? "new-poll-form"}
+        action={submitCreatePollAction}
+        errorMessage={createPollState.errorMessage}
         maxOptions={MAX_OPTIONS}
         minOptions={MIN_OPTIONS}
-        onAddOption={addOption}
-        onOptionChange={updateOption}
-        onQuestionChange={setQuestion}
-        onRemoveOption={removeOption}
-        onSubmit={onSubmit}
-        options={options}
-        question={question}
+        pending={isCreating}
       />
 
       {createdPoll ? (
-        <CreatedPollLinksCard copiedLink={copiedLink} onCopy={copyLink} poll={createdPoll} />
+        <CreatedPollLinksCard copiedLink={visibleCopiedLink} onCopy={copyLink} poll={createdPoll} />
       ) : null}
     </PageShell>
   );
