@@ -55,12 +55,15 @@ Optional in local/dev workflows:
 pnpm install
 ```
 
-2. If pnpm blocks Prisma build scripts:
+2. If pnpm blocks Prisma build scripts (you'll see "Ignored build scripts" after `pnpm install`):
 
 ```bash
 pnpm approve-builds
 pnpm install
 ```
+
+When prompted, select these packages to allow scripts:
+`@prisma/client`, `@prisma/engines`, `prisma`.
 
 3. Configure environment file:
 

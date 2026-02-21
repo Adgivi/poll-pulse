@@ -4,12 +4,12 @@ import { useParams } from "next/navigation";
 import { PollResultsPanel } from "@/components/polls/PollResultsPanel";
 import { PageShell } from "@/components/ui/PageShell";
 import { StateCard } from "@/components/ui/StateCard";
-import { usePollResults } from "@/hooks/usePollResults";
+import { usePollResultsQuery } from "@/hooks/usePollResultsQuery";
 
 export default function PollResultsPage() {
   const params = useParams<{ slug: string | string[] }>();
   const slug = Array.isArray(params.slug) ? params.slug[0] : (params.slug ?? "");
-  const { results, isLoading, error } = usePollResults(slug);
+  const { results, isLoading, error } = usePollResultsQuery(slug);
 
   if (isLoading) {
     return (

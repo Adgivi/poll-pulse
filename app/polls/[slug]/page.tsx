@@ -1,56 +1,20 @@
-"use client";
-
-import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { PollVotePanel } from "@/components/polls/PollVotePanel";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { PollVoteClient } from "@/app/polls/[slug]/PollVoteClient";
 import { PageShell } from "@/components/ui/PageShell";
 import { StateCard } from "@/components/ui/StateCard";
-import { usePollVote } from "@/hooks/usePollVote";
+import { getPollForVoting } from "@/lib/vote-service";
+import { VOTER_COOKIE_NAME } from "@/lib/voter";
 
-export default function PollVotePage() {
-  const params = useParams<{ slug: string | string[] }>();
-  const router = useRouter();
-  const slug = Array.isArray(params.slug) ? params.slug[0] : (params.slug ?? "");
-  const {
-    poll,
-    selectedOptionId,
-    isLoading,
-    isSubmitting,
-    error,
-    canSubmit,
-    setSelectedOptionId,
-    onVote,
-  } = usePollVote(slug);
+type PollVotePageProps = {
+  params: Promise<{ slug: string }>;
+};
 
-  useEffect(() => {
-    if (!poll?.hasVoted || !slug) {
-      return;
-    }
-
-    router.replace(`/polls/${slug}/result`);
-  }, [poll?.hasVoted, router, slug]);
-
-  if (isLoading) {
-    return (
-      <PageShell>
-        <StateCard message="Loading poll..." />
-      </PageShell>
-    );
-  }
-
-  if (error && !poll) {
-    return (
-      <PageShell>
-        <StateCard
-          actionHref="/"
-          actionLabel="Create a new poll"
-          message={error}
-          title="Could not load poll"
-          tone="error"
-        />
-      </PageShell>
-    );
-  }
+export default async function PollVotePage({ params }: PollVotePageProps) {
+  const { slug } = await params;
+  const cookieStore = await cookies();
+  const voterId = cookieStore.get(VOTER_COOKIE_NAME)?.value ?? null;
+  const poll = await getPollForVoting(slug, voterId);
 
   if (!poll) {
     return (
@@ -67,24 +31,12 @@ export default function PollVotePage() {
   }
 
   if (poll.hasVoted) {
-    return (
-      <PageShell>
-        <StateCard message="Redirecting to results..." />
-      </PageShell>
-    );
+    redirect(`/polls/${slug}/result`);
   }
 
   return (
     <PageShell>
-      <PollVotePanel
-        canSubmit={canSubmit}
-        error={error}
-        isSubmitting={isSubmitting}
-        onSelectOption={setSelectedOptionId}
-        onSubmit={onVote}
-        poll={poll}
-        selectedOptionId={selectedOptionId}
-      />
+      <PollVoteClient poll={poll} slug={slug} />
     </PageShell>
   );
 }
