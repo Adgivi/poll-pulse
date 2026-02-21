@@ -1,6 +1,6 @@
 # Poll Pulse
 
-Live poll app built with Next.js (App Router), Node runtime, PostgreSQL, Prisma, and Vercel.
+Live poll app built with Next.js (App Router), Node runtime, PostgreSQL, and Prisma.
 
 ## Stack
 
@@ -8,14 +8,13 @@ Live poll app built with Next.js (App Router), Node runtime, PostgreSQL, Prisma,
 - Route Handlers (REST API)
 - Prisma ORM + PostgreSQL
 - Tailwind CSS
-- Vercel deployment
 
 ## Features (MVP + Iterative Improvements)
 
-- Create poll with 2-5 options
+- Create a poll with 2-5 options
 - Shareable vote and results links
 - Vote endpoint with one-vote-per-browser-per-poll policy
-- Results page with auto-refresh (polling every 2s)
+- Results page with auto-refresh every 2s
 - Basic app metrics endpoint (`/api/metrics`)
 
 ## Data Model
@@ -174,30 +173,29 @@ pnpm dev
 - `pnpm prisma:migrate` - create/apply migration in dev
 - `pnpm prisma:studio` - inspect database
 
-## Deployment (Vercel)
+## Deployment
 
-1. Import GitHub repository in Vercel.
-2. Connect PostgreSQL provider (Prisma Postgres/Neon).
-3. Ensure `DATABASE_URL` exists in project env vars.
-4. Apply migrations once:
+1. Provision a PostgreSQL database in your hosting environment.
+2. Ensure `DATABASE_URL` exists in project env vars.
+3. Apply migrations at once:
 
 ```bash
 DATABASE_URL="<connection_string>" pnpm prisma migrate deploy
 ```
 
-5. Deploy.
+4. Build and deploy the app.
 
-## Architecture Notes for Interview
+## Architecture Notes
 
-- Single Next.js app for frontend + API keeps scope small and explainable.
+- A single Next.js app for frontend + API keeps the scope small and explainable.
 - Prisma schema captures core domain and enforces vote uniqueness at DB level.
-- Polling was chosen over SSE/WebSockets to reduce infrastructure complexity.
+- Periodic refresh was chosen over SSE/WebSockets to reduce infrastructure complexity.
 - No auth by design; anti-duplicate strategy is cookie-based + unique DB constraint.
 
 ## Trade-offs
 
 - Cookie-based voter identity can be bypassed across browsers/devices.
-- Polling introduces read overhead but is simple and reliable for MVP scale.
+- Periodic refresh introduces read overhead but is straightforward and reliable for an MVP scale.
 - Error handling is intentionally simple for interview scope.
 
 ## Next Iteration Candidates
