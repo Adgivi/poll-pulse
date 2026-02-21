@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getPollResultsBySlug } from "@/lib/results";
+import { getVoterIdFromRequest } from "@/lib/voter";
 
 export const runtime = "nodejs";
 
@@ -15,7 +16,8 @@ function createEtag(payload: unknown): string {
 
 export async function GET(request: Request, { params }: RouteProps) {
   const { slug } = await params;
-  const results = await getPollResultsBySlug(slug);
+  const voterId = getVoterIdFromRequest(request);
+  const results = await getPollResultsBySlug(slug, voterId);
 
   if (!results) {
     return NextResponse.json(

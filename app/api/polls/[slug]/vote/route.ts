@@ -85,7 +85,7 @@ export async function POST(request: Request, { params }: RouteProps) {
     );
   }
 
-  const results = await getPollResultsBySlug(slug);
+  const results = await getPollResultsBySlug(slug, voterId);
   const response = NextResponse.json({
     ok: true,
     results,

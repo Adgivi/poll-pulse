@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { PollResults } from "@/components/polls/types";
+import { cn } from "@/lib/cn";
 
 type PollResultsPanelProps = {
   results: PollResults;
@@ -28,11 +29,23 @@ export function PollResultsPanel({ results }: PollResultsPanelProps) {
         <div className="mt-6 space-y-4">
           {results.options.map((option) => {
             const isLeader = option.votes > 0 && option.votes === topVotes;
+            const isUserChoice = results.selectedOptionId === option.id;
             return (
-              <div key={option.id}>
+              <div
+                className={cn(
+                  "rounded-lg border px-3 py-3",
+                  isUserChoice ? "border-indigo-300 bg-indigo-50/50" : "border-transparent",
+                )}
+                key={option.id}
+              >
                 <div className="mb-1 flex items-center justify-between text-sm">
                   <span className="text-slate-800">
                     {option.text}{" "}
+                    {isUserChoice ? (
+                      <span className="rounded bg-indigo-100 px-1.5 py-0.5 text-xs text-indigo-800">
+                        Your vote
+                      </span>
+                    ) : null}{" "}
                     {isLeader ? (
                       <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs text-emerald-800">
                         Leading
