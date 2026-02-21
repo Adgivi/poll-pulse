@@ -12,6 +12,7 @@ export function MetricsCards({ metrics }: MetricsCardsProps) {
       <Link
         className="app-card p-4 transition hover:border-indigo-300 hover:shadow md:focus-visible:outline md:focus-visible:outline-2 md:focus-visible:outline-indigo-500"
         href="/polls"
+        prefetch={false}
       >
         <p className="text-sm text-slate-600">Total polls</p>
         <p className="mt-1 text-2xl font-semibold text-slate-900">{metrics?.totalPolls ?? "—"}</p>

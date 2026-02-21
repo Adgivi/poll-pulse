@@ -4,6 +4,8 @@ import { PollListItem } from "@/components/polls/types";
 import { PageShell } from "@/components/ui/PageShell";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function PollsPage() {
   const polls: PollListItem[] = await prisma.poll.findMany({
     orderBy: {
