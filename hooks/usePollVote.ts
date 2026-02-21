@@ -1,7 +1,14 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { ApiErrorResponse, PollDetail, PollResults } from "@/components/polls/types";
+import { ApiErrorResponse, PollDetail } from "@/components/polls/types";
+
+type VoteErrorResponse = ApiErrorResponse & {
+  error?: {
+    code?: string;
+    message?: string;
+  };
+};
 
 type UsePollVoteResult = {
   poll: PollDetail | null;
@@ -10,7 +17,6 @@ type UsePollVoteResult = {
   isSubmitting: boolean;
   error: string | null;
   canSubmit: boolean;
-  resultsAfterVote: PollResults | null;
   setSelectedOptionId: (optionId: string) => void;
   onVote: (event: FormEvent<HTMLFormElement>) => Promise<void>;
 };
@@ -21,7 +27,6 @@ export function usePollVote(slug: string): UsePollVoteResult {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [resultsAfterVote, setResultsAfterVote] = useState<PollResults | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -43,7 +48,6 @@ export function usePollVote(slug: string): UsePollVoteResult {
 
         setPoll(payload as PollDetail);
         setSelectedOptionId("");
-        setResultsAfterVote(null);
       } catch (loadError) {
         if (!mounted) {
           return;
@@ -92,17 +96,25 @@ export function usePollVote(slug: string): UsePollVoteResult {
           body: JSON.stringify({ optionId: selectedOptionId }),
         });
 
-        const payload =
-          ((await response.json()) as { results?: PollResults } | ApiErrorResponse) ?? null;
+        const payload = ((await response.json()) as VoteErrorResponse) ?? null;
 
         if (!response.ok) {
-          throw new Error((payload as ApiErrorResponse).error?.message ?? "Could not submit vote.");
+          if (response.status === 409 && payload?.error?.code === "ALREADY_VOTED") {
+            setPoll((current) => (current ? { ...current, hasVoted: true } : current));
+            return;
+          }
+
+          throw new Error(payload?.error?.message ?? "Could not submit vote.");
         }
 
-        setResultsAfterVote((payload as { results?: PollResults }).results ?? null);
+        setError(null);
         setPoll((current) => (current ? { ...current, hasVoted: true } : current));
       } catch (voteError) {
-        setError(voteError instanceof Error ? voteError.message : "Unexpected error.");
+        setError(
+          voteError instanceof Error
+            ? voteError.message
+            : "Could not submit vote. Please try again.",
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -117,7 +129,6 @@ export function usePollVote(slug: string): UsePollVoteResult {
     isSubmitting,
     error,
     canSubmit,
-    resultsAfterVote,
     setSelectedOptionId,
     onVote,
   };

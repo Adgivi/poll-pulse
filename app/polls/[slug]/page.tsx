@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { PollVotePanel } from "@/components/polls/PollVotePanel";
 import { PageShell } from "@/components/ui/PageShell";
 import { StateCard } from "@/components/ui/StateCard";
@@ -8,6 +9,7 @@ import { usePollVote } from "@/hooks/usePollVote";
 
 export default function PollVotePage() {
   const params = useParams<{ slug: string | string[] }>();
+  const router = useRouter();
   const slug = Array.isArray(params.slug) ? params.slug[0] : (params.slug ?? "");
   const {
     poll,
@@ -16,10 +18,17 @@ export default function PollVotePage() {
     isSubmitting,
     error,
     canSubmit,
-    resultsAfterVote,
     setSelectedOptionId,
     onVote,
   } = usePollVote(slug);
+
+  useEffect(() => {
+    if (!poll?.hasVoted || !slug) {
+      return;
+    }
+
+    router.replace(`/polls/${slug}/result`);
+  }, [poll?.hasVoted, router, slug]);
 
   if (isLoading) {
     return (
@@ -57,6 +66,14 @@ export default function PollVotePage() {
     );
   }
 
+  if (poll.hasVoted) {
+    return (
+      <PageShell>
+        <StateCard message="Redirecting to results..." />
+      </PageShell>
+    );
+  }
+
   return (
     <PageShell>
       <PollVotePanel
@@ -66,9 +83,7 @@ export default function PollVotePage() {
         onSelectOption={setSelectedOptionId}
         onSubmit={onVote}
         poll={poll}
-        resultsAfterVote={resultsAfterVote}
         selectedOptionId={selectedOptionId}
-        slug={slug}
       />
     </PageShell>
   );
