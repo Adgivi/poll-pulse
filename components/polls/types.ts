@@ -31,6 +31,7 @@ export type PollResults = {
   slug: string;
   question: string;
   totalVotes: number;
+  selectedOptionId: string | null;
   options: Array<{ id: string; text: string; votes: number; percentage: number }>;
 };
 
