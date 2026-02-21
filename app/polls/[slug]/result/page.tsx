@@ -35,7 +35,7 @@ export default function PollResultsPage() {
 
   return (
     <PageShell>
-      <PollResultsPanel results={results} slug={slug} />
+      <PollResultsPanel results={results} />
     </PageShell>
   );
 }

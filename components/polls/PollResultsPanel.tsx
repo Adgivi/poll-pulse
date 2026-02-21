@@ -4,10 +4,9 @@ import { PollResults } from "@/components/polls/types";
 
 type PollResultsPanelProps = {
   results: PollResults;
-  slug: string;
 };
 
-export function PollResultsPanel({ results, slug }: PollResultsPanelProps) {
+export function PollResultsPanel({ results }: PollResultsPanelProps) {
   const topVotes = results.options.reduce(
     (max, option) => (option.votes > max ? option.votes : max),
     0,
@@ -57,8 +56,8 @@ export function PollResultsPanel({ results, slug }: PollResultsPanelProps) {
       )}
 
       <div className="mt-6 text-sm">
-        <Link className="text-indigo-700 underline" href={`/polls/${slug}`}>
-          Back to voting
+        <Link className="text-indigo-700 underline" href="/">
+          Back to create
         </Link>
       </div>
     </Card>

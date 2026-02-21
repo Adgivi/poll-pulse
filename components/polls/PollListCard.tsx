@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Card } from "@/components/ui/Card";
 import { PollListItem } from "@/components/polls/types";
 import { formatPollDate } from "@/components/polls/formatters";
 
@@ -9,24 +8,23 @@ type PollListCardProps = {
 
 export function PollListCard({ poll }: PollListCardProps) {
   return (
-    <Card className="p-5">
-      <h2 className="text-lg font-semibold text-slate-900">{poll.question}</h2>
-      <p className="mt-1 text-sm text-slate-600">Created: {formatPollDate(poll.createdAt)}</p>
-      <p className="mt-1 text-sm text-slate-600">
-        {poll._count.options} options · {poll._count.votes} votes
-      </p>
+    <Link
+      className="app-card block p-5 transition hover:border-indigo-300 hover:shadow md:focus-visible:outline md:focus-visible:outline-2 md:focus-visible:outline-indigo-500"
+      href={`/polls/${poll.slug}`}
+    >
+      <div className="flex items-start justify-between gap-6">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">{poll.question}</h2>
+          <p className="mt-1 text-sm text-slate-600">Created: {formatPollDate(poll.createdAt)}</p>
+          <p className="mt-1 text-sm text-slate-600">
+            {poll._count.options} options · {poll._count.votes} votes
+          </p>
+        </div>
 
-      <div className="mt-3 flex flex-wrap gap-4 text-sm">
-        <Link className="font-medium text-indigo-700 underline" href={`/polls/${poll.slug}`}>
-          Open voting
-        </Link>
-        <Link
-          className="font-medium text-indigo-700 underline"
-          href={`/polls/${poll.slug}/result`}
-        >
-          Open result
-        </Link>
+        <span className="shrink-0 text-sm font-medium text-indigo-700 underline">
+          Open poll
+        </span>
       </div>
-    </Card>
+    </Link>
   );
 }
